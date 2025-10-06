@@ -1,0 +1,5 @@
+{
+  "name": "Gemini PhD Thesis Orchestrator",
+  "description": "An application to orchestrate Gemini for writing or editing a full PhD thesis from a structured plan. It manages content generation, styling, citations, and word count targets to produce a complete academic document.",
+  "requestFramePermissions": []
+}
