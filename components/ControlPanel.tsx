@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PlayIcon, PauseIcon, ArrowDownTrayIcon, ArrowPathIcon, DocumentTextIcon, ArchiveBoxIcon, ListBulletIcon } from '@heroicons/react/24/solid';
 
@@ -11,6 +10,7 @@ interface ControlPanelProps {
     onExportZip: () => void;
     onExportLog: () => void;
     isFinished: boolean;
+    isSystemOk: boolean;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({ 
@@ -21,7 +21,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     onExportDocx, 
     onExportZip, 
     onExportLog,
-    isFinished 
+    isFinished,
+    isSystemOk
 }) => {
     const buttonBaseClasses = "w-full flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
 
@@ -30,6 +31,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             {!isGenerating ? (
                  <button 
                     onClick={onStart}
+                    disabled={!isSystemOk}
                     className={`${buttonBaseClasses} bg-cyan-600 hover:bg-cyan-500 focus:ring-cyan-500`}
                 >
                     {isFinished ? <ArrowPathIcon className="h-5 w-5"/> : <PlayIcon className="h-5 w-5"/>}
@@ -47,7 +49,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
             <button 
                 onClick={onExportMd}
-                disabled={isGenerating}
+                disabled={isGenerating || !isSystemOk}
                 className={`${buttonBaseClasses} bg-gray-600 hover:bg-gray-500 focus:ring-gray-500`}
             >
                 <ArrowDownTrayIcon className="h-5 w-5"/>
@@ -56,7 +58,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
             <button 
                 onClick={onExportDocx}
-                disabled={isGenerating}
+                disabled={isGenerating || !isSystemOk}
                 className={`${buttonBaseClasses} bg-blue-600 hover:bg-blue-500 focus:ring-blue-500`}
             >
                 <DocumentTextIcon className="h-5 w-5"/>
@@ -65,7 +67,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             
             <button 
                 onClick={onExportZip}
-                disabled={isGenerating}
+                disabled={isGenerating || !isSystemOk}
                 className={`${buttonBaseClasses} bg-indigo-600 hover:bg-indigo-500 focus:ring-indigo-500`}
             >
                 <ArchiveBoxIcon className="h-5 w-5"/>

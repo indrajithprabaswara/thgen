@@ -1,3 +1,4 @@
+
 export interface PlanSection {
     id: string;
     title: string;
@@ -27,7 +28,7 @@ export interface GenerationMetadata {
 export type CheckStatus = 'pending' | 'running' | 'success' | 'failure';
 
 export interface Check {
-    id: 'codebase' | 'scripts' | 'figures';
+    id: 'codebase' | 'scripts' | 'figures' | 'code_compliance';
     label: string;
     status: CheckStatus;
     details: string;

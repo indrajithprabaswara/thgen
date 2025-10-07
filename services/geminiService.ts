@@ -1,4 +1,5 @@
-import { GenerationMetadata } from '../types';
+
+import { GenerationMetadata, CitationIndex, CheckStatus } from '../types';
 
 interface ParsedResponse {
     content: string;
@@ -27,6 +28,80 @@ export const generateThesisChunk = async (prompt: string): Promise<ParsedRespons
         throw new Error("Failed to generate content from Gemini API.");
     }
 };
+
+export const generateReferenceList = async (citations: CitationIndex, chapterTitle: string): Promise<string> => {
+    if (Object.keys(citations).length === 0) return "";
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const prompt = `
+You are a bibliography assistant. Your task is to format the following citation data into a Markdown "References" section for the chapter titled "${chapterTitle}".
+Adhere to the numeric citation style guide: "[n] Author(s). Title. Publication venue or publisher. Year. One sentence summary."
+Ensure the list is numbered correctly based on the provided keys.
+
+Citation Data:
+${JSON.stringify(citations, null, 2)}
+
+Respond ONLY with the formatted Markdown, starting with a "## References" header.
+`;
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        return `\n\n${response.text}`;
+    } catch (error) {
+        console.error("Error generating reference list:", error);
+        return "\n\nError generating references for this chapter.";
+    }
+};
+
+export const verifyCodeCompliance = async (thesisContent: string, codebaseFiles: Record<string, string>): Promise<{ status: CheckStatus; details: string; }> => {
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+    const prompt = `
+As a senior software engineer, review the following Python codebase against the provided PhD thesis description.
+Your task is to verify if the code accurately and completely implements the system described in the thesis.
+
+Thesis Excerpt (first 15k chars):
+---
+${thesisContent.substring(0, 15000)}
+---
+
+Codebase Files:
+---
+${JSON.stringify(codebaseFiles, null, 2)}
+---
+
+**Analysis:**
+1. Does the code structure (modules, classes, functions) reflect the architecture described in the thesis?
+2. Is the core logic (algorithms, data structures) a faithful implementation of the concepts in the thesis?
+3. Are there any major discrepancies or missing components?
+
+**Response Format:**
+Respond ONLY with a single, raw JSON object with two keys:
+- "status": A string, either "success" or "failure".
+- "details": A string providing a brief one-sentence justification for your status.
+`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        const cleanedText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const result = JSON.parse(cleanedText);
+        if ((result.status === 'success' || result.status === 'failure') && typeof result.details === 'string') {
+            return result;
+        }
+        return { status: 'failure', details: 'Could not parse verification response.' };
+    } catch (error) {
+        console.error("Error verifying codebase compliance:", error);
+        return { status: 'failure', details: 'API call failed during code verification.' };
+    }
+};
+
 
 export const generateCodebase = async (thesisContent: string): Promise<Record<string, string>> => {
     const { GoogleGenAI } = await import('@google/genai');
